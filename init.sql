@@ -1,3 +1,20 @@
+do
+$$
+begin
+  if not exists (select * from pg_user where usename = 'ROLE_MANAGER') then
+     create role ROLE_MANAGER password 'manager12!';
+     -- 권한 추가
+  end if;
+
+  if not exists (select * from pg_user where usename = 'ROLE_CS') then
+     create role ROLE_CS password 'cs12!';
+     -- 권한 추가
+  end if;
+end
+$$
+;
+
+
 DROP TABLE IF EXISTS delivery_area_tb;
 DROP TABLE IF EXISTS account_record_tb;
 DROP TABLE IF EXISTS account_tb;
@@ -117,3 +134,4 @@ CREATE TRIGGER auction_price_increase_trigger
 BEFORE UPDATE ON auction_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_auction_price_increase();
+
