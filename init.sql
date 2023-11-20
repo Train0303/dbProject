@@ -1,16 +1,18 @@
-do
+DO
 $$
-begin
-  if not exists (select * from pg_user where usename = 'ROLE_MANAGER') then
-     create role ROLE_MANAGER password 'manager12!';
+BEGIN
+  IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'ROLE_MANAGER') THEN
+     CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
      -- 권한 추가
-  end if;
+     GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_MANAGER;
+  END IF;
 
-  if not exists (select * from pg_user where usename = 'ROLE_CS') then
-     create role ROLE_CS password 'cs12!';
+  IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'ROLE_CS') THEN
+     create role ROLE_CS WITH LOGIN PASSWORD 'cs12!';
      -- 권한 추가
-  end if;
-end
+     GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_CS;
+  END IF;
+END
 $$
 ;
 
