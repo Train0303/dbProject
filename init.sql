@@ -16,7 +16,7 @@ CREATE TABLE member_tb (
 );
 
 CREATE TABLE location_tb (
-    id      BIGINT       PRIMARY KEY,
+    id      BIGSERIAL	 PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL
 );
 
@@ -36,7 +36,7 @@ CREATE TABLE account_tb(
 );
 
 CREATE TABLE account_record_tb(
-    id          BIGINT      PRIMARY KEY,
+    id          BIGSERIAL	PRIMARY KEY,
     account_num VARCHAR(20) NOT NULL,
     sender      VARCHAR(20),
     money       BIGINT      NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE account_record_tb(
 );
 
 CREATE TABLE product_tb(
-    id          BIGINT          PRIMARY KEY,
+    id          BIGSERIAL	    PRIMARY KEY,
     name        VARCHAR(50)     NOT NULL,
     kind        VARCHAR(50)     NOT NULL,
     description VARCHAR(65535)
@@ -60,7 +60,7 @@ CREATE TABLE employee_tb(
 );
 
 CREATE TABLE auction_tb(
-    id              BIGINT          PRIMARY KEY,
+    id              BIGSERIAL	    PRIMARY KEY,
     sel_id          VARCHAR(100)    NOT NULL,
     buy_id          VARCHAR(100)    NOT NULL,
     emp_id          VARCHAR(100)    NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE auction_tb(
 );
 
 CREATE TABLE auction_record_tb(
-    id          BIGINT          PRIMARY KEY,
+    id          BIGSERIAL	    PRIMARY KEY,
     buy_id      VARCHAR(100)    NOT NULL,
     auc_id      BIGINT          NOT NULL,
     price       BIGINT          NOT NULL CHECK (price > 0),
@@ -88,7 +88,7 @@ CREATE TABLE auction_record_tb(
 );
 
 CREATE TABLE delivery_tb(
-    auc_id      BIGINT          NOT NULL,
+    auc_id      BIGINT  	    NOT NULL,
     dist_id     VARCHAR(100)    NOT NULL,
     dest        VARCHAR(200)    NOT NULL,
     time_limit  TIMESTAMP       NOT NULL,
