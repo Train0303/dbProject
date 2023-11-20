@@ -98,3 +98,22 @@ CREATE TABLE delivery_tb(
     FOREIGN KEY (dist_id) REFERENCES member_tb(id),
     PRIMARY KEY (auc_id, dist_id)
 );
+
+CREATE OR REPLACE FUNCTION check_auction_price_increase()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- 경매가격이 변경되었는지 확인
+    IF NEW.price IS DISTINCT FROM OLD.price THEN
+        -- 새로운 값이 이전 값보다 큰지 확인
+        IF NEW.price <= OLD.price THEN
+            RAISE EXCEPTION 'New order amount must be greater than the old order amount.';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER auction_price_increase_trigger
+BEFORE UPDATE ON auction_tb
+FOR EACH ROW
+EXECUTE FUNCTION check_auction_price_increase();
