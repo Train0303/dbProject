@@ -2,11 +2,10 @@ from typing import Tuple, Optional
 from connection import Employee
 
 def signin() -> Employee:
-    account:Employee = Employee('gimtaeho', None)  # -> 실제로는 직원 조회 권한만 준 임시계정으로 만든다.
-    
+    account:Employee = Employee("temp_account")
     id:str = input("ID를 입력해주세요: ")
     pw:str = input("비밀번호를 입력해주세요: ")
-    
+
     with account.conn.cursor() as cur:
         cur = account.conn.cursor()
         cur.execute("SELECT id, name, role FROM employee_tb WHERE id = %s AND pw = %s;", (id, pw, ))
@@ -17,23 +16,22 @@ def signin() -> Employee:
         else:
             print("로그인 성공")
             account.conn.close()
-            return Employee(result[2], "비번")
+            return Employee(result[2])
             
 def signup() -> None:
     id:str = input("ID를 입력해주세요: ")
     pw:str = input("비밀번호를 입력해주세요: ")
     name:str = input("이름을 입력해주세요: ")
-    account:Employee = Employee('gimtaeho', None)  # -> 실제로는 직원 생성 권한만 준 임시계정으로 만든다.
+    account:Employee = Employee('temp_account')  # 실제로는 회원가입 요청 Insert 권한만 준 임시계정으로 만든다.
     
     with account.conn.cursor() as cur:
         cur = account.conn.cursor()
-        cur.execute("SELECT id FROM employee_tb where id= %s;", (id, ))
-        if(cur.fetchone() is not None) :
-            print("해당 ID가 이미 디비에 존재합니다.")
-        else:
-            cur.execute("INSERT INTO employee_tb(id, pw, name, role) VALUES(%s, %s, %s, %s);", (id, pw, name, "role_cs", ))
-            account.conn.commit()
-            print("계정 생성 완료!")
+        # cur.execute("SELECT id FROM employee_tb where id= %s;", (id, ))
+        # if(cur.fetchone() is not None) :
+        #     print("해당 ID가 이미 디비에 존재합니다.")
+        cur.execute("INSERT INTO employee_request_tb(id, pw, name) VALUES(%s, %s, %s);", (id, pw, name, ))
+        account.conn.commit()
+        print("계정 생성 완료!")
 
 def init() -> None:
     

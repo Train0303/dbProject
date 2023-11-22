@@ -2,7 +2,7 @@ import psycopg2
 from exception import LoginException
 
 role_account = {
-    "gimtaeho" : None,
+    "temp_account" : '',
     "role_manager" : "manager12!",
     "role_cs" : "cs12!"
 }
@@ -15,7 +15,7 @@ class Employee:
     dbname:str='dbproject'
     port:int=5432
     
-    def __init__(self, id, pw):
+    def __init__(self, id):
         try:
             self.conn = psycopg2.connect(host=self.host, 
                                         user=id, 

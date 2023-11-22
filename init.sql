@@ -1,17 +1,17 @@
 DO
 $$
 BEGIN
-  IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'ROLE_MANAGER') THEN
-     CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
-     -- 권한 추가
-     GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_MANAGER;
-  END IF;
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') THEN
+        CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
+    END IF;
 
-  IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'ROLE_CS') THEN
-     create role ROLE_CS WITH LOGIN PASSWORD 'cs12!';
-     -- 권한 추가
-     GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_CS;
-  END IF;
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') THEN
+        create role ROLE_CS WITH LOGIN PASSWORD 'cs12!';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
+        create role TEMP_ACCOUNT WITH LOGIN PASSWORD '';
+    END IF;
 END
 $$
 ;
@@ -25,13 +25,21 @@ DROP TABLE IF EXISTS delivery_tb;
 DROP TABLE IF EXISTS auction_tb;
 DROP TABLE IF EXISTS product_tb;
 DROP TABLE IF EXISTS member_tb;
+DROP TABLE IF EXISTS member_request_tb;
 DROP TABLE IF EXISTS location_tb;
 DROP TABLE IF EXISTS employee_tb;
+DROP TABLE IF EXISTS employee_request_tb;
 
 CREATE TABLE member_tb (
     id      VARCHAR(100) PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL,
     pw      VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE member_request_tb(
+    id          VARCHAR(100)    PRIMARY KEY,
+    name        VARCHAR(30)     NOT NULL,
+    pw          VARCHAR(255)    NOT NULL
 );
 
 CREATE TABLE location_tb (
@@ -78,6 +86,12 @@ CREATE TABLE employee_tb(
     role        VARCHAR(20)     NOT NULL
 );
 
+CREATE TABLE employee_request_tb(
+    id          VARCHAR(100)    PRIMARY KEY,
+    name        VARCHAR(30)     NOT NULL,
+    pw          VARCHAR(255)    NOT NULL
+);
+
 CREATE TABLE auction_tb(
     id              BIGSERIAL	    PRIMARY KEY,
     sel_id          VARCHAR(100)    NOT NULL,
@@ -118,6 +132,11 @@ CREATE TABLE delivery_tb(
     PRIMARY KEY (auc_id, dist_id)
 );
 
+GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
+GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
+GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_CS;
+GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_MANAGER;
+
 CREATE OR REPLACE FUNCTION check_auction_price_increase()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -132,8 +151,49 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION check_id_in_member()
+RETURNS TRIGGER AS $$
+DECLARE
+    member_id VARCHAR(100);
+BEGIN
+    SELECT id INTO member_id FROM member_tb WHERE member_tb.id = NEW.id;
+
+    IF count(member_id) > 0 THEN
+        RAISE EXCEPTION 'Already Id in Member!';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE OR REPLACE FUNCTION check_id_in_employee()
+RETURNS TRIGGER AS $$
+DECLARE
+    employee_id VARCHAR(100);
+BEGIN
+    SELECT id INTO employee_id FROM employee_tb WHERE id = NEW.id;
+
+    IF count(employee_id) > 0 THEN
+        RAISE EXCEPTION 'Already Id in Member!';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
 CREATE TRIGGER auction_price_increase_trigger
 BEFORE UPDATE ON auction_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_auction_price_increase();
 
+CREATE TRIGGER check_id_in_member_trigger
+BEFORE INSERT ON member_request_tb
+FOR EACH ROW
+EXECUTE FUNCTION check_id_in_member();
+
+CREATE TRIGGER check_id_in_employee_trigger
+BEFORE INSERT ON employee_request_tb
+FOR EACH ROW
+EXECUTE FUNCTION check_id_in_employee();
