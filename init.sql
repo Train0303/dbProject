@@ -1,6 +1,3 @@
-
-
-
 DROP TABLE IF EXISTS delivery_area_tb;
 DROP TABLE IF EXISTS account_record_tb;
 DROP TABLE IF EXISTS account_tb;
@@ -17,13 +14,15 @@ DROP TABLE IF EXISTS employee_request_tb;
 CREATE TABLE member_tb (
     id      VARCHAR(100) PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL,
-    pw      VARCHAR(255) NOT NULL
+    pw      VARCHAR(255) NOT NULL,
+    role    VARCHAR(20)  NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
 CREATE TABLE member_request_tb(
-    id          VARCHAR(100)    PRIMARY KEY,
-    name        VARCHAR(30)     NOT NULL,
-    pw          VARCHAR(255)    NOT NULL
+    id      VARCHAR(100)    PRIMARY KEY,
+    name    VARCHAR(30)     NOT NULL,
+    pw      VARCHAR(255)    NOT NULL,
+    role    VARCHAR(20)     NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
 CREATE TABLE location_tb (
@@ -74,7 +73,8 @@ CREATE TABLE employee_tb(
 CREATE TABLE employee_request_tb(
     id          VARCHAR(100)    PRIMARY KEY,
     name        VARCHAR(30)     NOT NULL,
-    pw          VARCHAR(255)    NOT NULL
+    pw          VARCHAR(255)    NOT NULL,
+    role        VARCHAR(20)     NOT NULL CHECK (role = 'role_manager' OR role = 'role_cs')
 );
 
 CREATE TABLE auction_tb(
@@ -130,6 +130,18 @@ BEGIN
         CREATE ROLE ROLE_CS WITH LOGIN PASSWORD 'cs12!';
     END IF;
 
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_buyer') THEN
+        CREATE ROLE ROLE_BUYER WITH LOGIN PASSWORD 'buyer12!';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_seller') THEN
+        CREATE ROLE ROLE_SELLER WITH LOGIN PASSWORD 'seller12!';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_deliver') THEN
+        CREATE ROLE ROLE_DELIVER WITH LOGIN PASSWORD 'deliver12!';
+    END IF;
+
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
         CREATE ROLE TEMP_ACCOUNT WITH LOGIN PASSWORD '';
     END IF;
@@ -152,9 +164,17 @@ GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
 GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_MANAGER;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
 INSERT INTO employee_tb values
 ('manager', 'qwer1234', '매니저', 'role_manager'),
 ('cs', 'qwer1234', '고객서비스', 'role_cs');
+
+INSERT INTO member_tb values
+('seller', 'qwer1234', '판매자', 'role_seller'),
+('buyer', 'qwer1234', '구매자', 'role_buyer'),
+('deliver', 'qwer1234', '운송업자', 'role_deliver');
 
 
 CREATE OR REPLACE FUNCTION check_auction_validation()
