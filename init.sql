@@ -1,20 +1,4 @@
-DO
-$$
-BEGIN
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') THEN
-        CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
-    END IF;
 
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') THEN
-        create role ROLE_CS WITH LOGIN PASSWORD 'cs12!';
-    END IF;
-
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
-        create role TEMP_ACCOUNT WITH LOGIN PASSWORD '';
-    END IF;
-END
-$$
-;
 
 
 DROP TABLE IF EXISTS delivery_area_tb;
@@ -83,7 +67,8 @@ CREATE TABLE employee_tb(
     id          VARCHAR(100)    PRIMARY KEY,
     name        VARCHAR(30)     NOT NULL,
     pw          VARCHAR(255)    NOT NULL,
-    role        VARCHAR(20)     NOT NULL
+    role        VARCHAR(20)     NOT NULL CHECK (role = 'role_manager' OR role = 'role_cs')
+    
 );
 
 CREATE TABLE employee_request_tb(
@@ -99,9 +84,10 @@ CREATE TABLE auction_tb(
     emp_id          VARCHAR(100)    NOT NULL,
     product_id      BIGINT          NOT NULL,
     price           BIGINT   	    NOT NULL CHECK (price > 0),
-    status          VARCHAR(10)     NOT NULL,
+    status          VARCHAR(10)     NOT NULL CHECK (status = 'NOT_READY' or status = 'READY' or status = 'START' or status = 'END'),
     count           INT   	        NOT NULL CHECK (count > 0),
-    register_time   TIMESTAMP       NOT NULL,
+    start_time      TIMESTAMP       NOT NULL,
+    end_time        TIMESTAMP       NOT NULL CHECK(end_time > start_time),
 
     FOREIGN KEY (sel_id) REFERENCES member_tb(id),
     FOREIGN KEY (buy_id) REFERENCES member_tb(id),
@@ -132,24 +118,83 @@ CREATE TABLE delivery_tb(
     PRIMARY KEY (auc_id, dist_id)
 );
 
+
+DO
+$$
+BEGIN
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') THEN
+        CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') THEN
+        CREATE ROLE ROLE_CS WITH LOGIN PASSWORD 'cs12!';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
+        CREATE ROLE TEMP_ACCOUNT WITH LOGIN PASSWORD '';
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'manager') THEN
+        CREATE USER manager PASSWORD 'qwer1234';
+        GRANT role_manager TO manager;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'cs') THEN
+        CREATE USER cs PASSWORD 'qwer1234';
+        GRANT role_cs TO cs;
+    END IF;
+END
+$$
+;
+
+
 GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
 GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
-GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_CS;
-GRANT ALL PRIVILEGES ON DATABASE dbproject TO ROLE_MANAGER;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_MANAGER;
+INSERT INTO employee_tb values
+('manager', 'qwer1234', '매니저', 'role_manager'),
+('cs', 'qwer1234', '고객서비스', 'role_cs');
 
-CREATE OR REPLACE FUNCTION check_auction_price_increase()
+
+CREATE OR REPLACE FUNCTION check_auction_validation()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- 경매가격이 변경되었는지 확인
+    -- Check Auction Price monoton increasing
     IF NEW.price IS DISTINCT FROM OLD.price THEN
-        -- 새로운 값이 이전 값보다 큰지 확인
         IF NEW.price <= OLD.price THEN
             RAISE EXCEPTION 'New order amount must be greater than the old order amount.';
         END IF;
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_auction_record_validation()
+RETURNS TRIGGER AS $$
+DECLARE
+    start_time   TIMESTAMP;
+    end_time     TIMESTAMP;
+BEGIN
+    -- Check order_time Not Input
+    IF NEW.order_time IS NOT NULL THEN
+        RAISE EXCEPTION 'order_time is always null input.';
+    END IF;
+
+    NEW.order_time = CURRENT_TIMESTAMP;
+
+    SELECT start_time, end_time INTO start_time, end_time FROM auction_tb WHERE id = NEW.auc_id;
+
+    -- Check Auction Record Create Time < Auction End Time
+    IF CURRENT_TIMESTAMP < start_time THEN
+        RAISE EXCEPTION 'Not Start Auction.';
+    ELSIF CURRENT_TIMESTAMP > end_time THEN
+        RAISE EXCEPTION 'Already Closing Auction.'; 
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION check_id_in_member()
 RETURNS TRIGGER AS $$
@@ -182,7 +227,6 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 
-
 CREATE TRIGGER auction_price_increase_trigger
 BEFORE UPDATE ON auction_tb
 FOR EACH ROW
@@ -197,3 +241,8 @@ CREATE TRIGGER check_id_in_employee_trigger
 BEFORE INSERT ON employee_request_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_id_in_employee();
+
+CREATE TRIGGER check_auction_record_validation_trigger
+BEFORE INSERT ON auction_record_tb
+FOR EACH ROW
+EXECUTE FUNCTION check_auction_record_validation();

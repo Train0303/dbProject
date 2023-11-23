@@ -1,4 +1,4 @@
-from connection import Employee
+from emp.employee import Employee
 ## Custom Service 비지니스 로직
 
 class CustomService(Employee):
