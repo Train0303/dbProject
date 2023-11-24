@@ -11,6 +11,28 @@ DROP TABLE IF EXISTS location_tb;
 DROP TABLE IF EXISTS employee_tb;
 DROP TABLE IF EXISTS employee_request_tb;
 
+DROP FUNCTION IF EXISTS check_auction_validation;
+DROP FUNCTION IF EXISTS check_auction_record_validation;
+DROP FUNCTION IF EXISTS check_id_in_member;
+DROP FUNCTION IF EXISTS check_id_in_employee;
+
+DROP TRIGGER IF EXISTS auction_price_increase_trigger ON auction_tb;
+DROP TRIGGER IF EXISTS check_id_in_member_trigger ON member_request_tb;
+DROP TRIGGER IF EXISTS check_id_in_employee_trigger ON employee_request_tb;
+DROP TRIGGER IF EXISTS check_auction_record_validation_trigger ON auction_record_tb;
+
+DROP ROLE IF EXISTS ROLE_MANAGER;
+DROP ROLE IF EXISTS ROLE_CS;
+DROP ROLE IF EXISTS ROLE_BUYER;
+DROP ROLE IF EXISTS ROLE_SELLER;
+DROP ROLE IF EXISTS ROLE_DELIVER;
+DROP ROLE IF EXISTS TEMP_ACCOUNT;
+DROP USER IF EXISTS manager;
+DROP USER IF EXISTS cs;
+DROP USER IF EXISTS buyer;
+DROP USER IF EXISTS seller;
+DROP USER IF EXISTS deliver;
+
 CREATE TABLE member_tb (
     id      VARCHAR(100) PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL,
@@ -80,8 +102,8 @@ CREATE TABLE employee_request_tb(
 CREATE TABLE auction_tb(
     id              BIGSERIAL	    PRIMARY KEY,
     sel_id          VARCHAR(100)    NOT NULL,
-    buy_id          VARCHAR(100)    NOT NULL,
-    emp_id          VARCHAR(100)    NOT NULL,
+    buy_id          VARCHAR(100)    ,
+    emp_id          VARCHAR(100)    ,
     product_id      BIGINT          NOT NULL,
     price           BIGINT   	    NOT NULL CHECK (price > 0),
     status          VARCHAR(10)     NOT NULL CHECK (status = 'NOT_READY' or status = 'READY' or status = 'START' or status = 'END'),
