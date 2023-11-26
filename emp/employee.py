@@ -27,6 +27,8 @@ class Employee:
                                             dbname=self.dbname, 
                                             port=self.port)
                 
+                self.conn.autocommit = False
+                
             except BaseException:
                 raise LoginException('로그인에 실패했습니다.')
         else:

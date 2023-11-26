@@ -1,6 +1,12 @@
 from typing import Tuple, Optional
 from employee import Employee
 from manager import Manager
+from cs import CustomService
+
+role_dict = {
+    '1' : 'role_manager',
+    '2' : 'role_cs'
+}
 
 def signin() -> Tuple[str, object]:
     id:str = input("ID를 입력해주세요: ")
@@ -18,36 +24,19 @@ def signup() -> None:
     id:str = input("ID를 입력해주세요: ")
     pw:str = input("비밀번호를 입력해주세요: ")
     name:str = input("이름을 입력해주세요: ")
+    role:str = role_dict.get(input("역할을 입력해주세요\n(1. 매니저)\n(2. CS팀)\nEnter:"))
+    
+    if role is None:
+        print("잘못된 입력입니다. 다시 시도해주세요.")
+        return 
+
     account:Employee = Employee(id = 'temp_account', pw = '')  # 실제로는 회원가입 요청 Insert 권한만 준 임시계정으로 만든다.
     
     with account.conn.cursor() as cur:
-        cur.execute("INSERT INTO employee_request_tb(id, pw, name) VALUES(%s, %s, %s);", (id, pw, name, ))
+        cur.execute("INSERT INTO employee_request_tb(id, pw, name, role) VALUES(%s, %s, %s, %s);", (id, pw, name, role, ))
         account.conn.commit()
         print("계정 생성 요청 완료!")
 
-def test_insert() -> None:
-    account:Employee = Employee('gimtaeho', None) # 관리자로 접근
-    with account.conn.cursor() as cur:
-        while (True):
-            cur.execute("SELECT * FROM employee_request_tb")
-            result:Optional[Tuple[str]] = cur.fetchall()
-            for i, request in enumerate(result):
-                print(f"{i+1} - ID : {request[0]}, Name : {request[2]}")
-                
-            choice = input("회원 전환할 번호를 입력해주세요(종료는 0): ")
-            if choice == 0:
-                break
-            elif choice > len(result) or choice < 0:
-                print("잘못된 입력입니다!!")
-                break
-            else: 
-                id, pw, name, role = request
-                cur.execute("INSERT INTO employee_tb(id, pw, name, role) VALUES(%s, %s, %s, %s);", (id, pw, name, role))
-                cur.execute("DELETE FROM employee_request_tb WHERE id = %s;", (id, ))
-                cur.execute("CREATE USER %s PASSWORD %s;", (id, pw, ))
-                cur.execute("GRANT role_cs TO %s", (id, ))
-            
-            account.conn.commit()
 
 def start(login_info:Tuple[str, object]):
     account = None
@@ -58,6 +47,8 @@ def start(login_info:Tuple[str, object]):
         # 로직
     elif login_info[1] == 'role_cs':
         print('cs팀으로 시작하셨습니다.')
+        account = CustomService(conn=login_info[1])
+        account.menu()
         # 로직
     
 def init() -> None:

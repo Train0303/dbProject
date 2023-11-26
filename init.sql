@@ -122,7 +122,7 @@ CREATE TABLE auction_record_tb(
     buy_id      VARCHAR(100)    NOT NULL,
     auc_id      BIGINT          NOT NULL,
     price       BIGINT          NOT NULL CHECK (price > 0),
-    order_time  TIMESTAMP       NOT NULL,
+    order_time  TIMESTAMP       ,
 
     FOREIGN KEY (buy_id) REFERENCES member_tb(id),
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id)
@@ -145,23 +145,23 @@ DO
 $$
 BEGIN
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') THEN
-        CREATE ROLE ROLE_MANAGER  WITH LOGIN PASSWORD 'manager12!';
+        CREATE ROLE ROLE_MANAGER WITH CREATEROLE INHERIT;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') THEN
-        CREATE ROLE ROLE_CS WITH LOGIN PASSWORD 'cs12!';
+        CREATE ROLE ROLE_CS;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_buyer') THEN
-        CREATE ROLE ROLE_BUYER WITH LOGIN PASSWORD 'buyer12!';
+        CREATE ROLE ROLE_BUYER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_seller') THEN
-        CREATE ROLE ROLE_SELLER WITH LOGIN PASSWORD 'seller12!';
+        CREATE ROLE ROLE_SELLER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_deliver') THEN
-        CREATE ROLE ROLE_DELIVER WITH LOGIN PASSWORD 'deliver12!';
+        CREATE ROLE ROLE_DELIVER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
@@ -176,6 +176,21 @@ BEGIN
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'cs') THEN
         CREATE USER cs PASSWORD 'qwer1234';
         GRANT role_cs TO cs;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'seller') THEN
+        CREATE USER seller PASSWORD 'qwer1234';
+        GRANT role_seller TO seller;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'buyer') THEN
+        CREATE USER buyer PASSWORD 'qwer1234';
+        GRANT role_buyer TO buyer;
+    END IF;
+
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'deliver') THEN
+        CREATE USER deliver PASSWORD 'qwer1234';
+        GRANT role_deliver TO deliver;
     END IF;
 END
 $$
@@ -216,8 +231,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION check_auction_record_validation()
 RETURNS TRIGGER AS $$
 DECLARE
-    start_time   TIMESTAMP;
-    end_time     TIMESTAMP;
+    start_time_var   TIMESTAMP;
+    end_time_var     TIMESTAMP;
 BEGIN
     -- Check order_time Not Input
     IF NEW.order_time IS NOT NULL THEN
@@ -225,13 +240,12 @@ BEGIN
     END IF;
 
     NEW.order_time = CURRENT_TIMESTAMP;
-
-    SELECT start_time, end_time INTO start_time, end_time FROM auction_tb WHERE id = NEW.auc_id;
+    SELECT start_time, end_time INTO start_time_var, end_time_var FROM auction_tb WHERE id = NEW.auc_id;
 
     -- Check Auction Record Create Time < Auction End Time
-    IF CURRENT_TIMESTAMP < start_time THEN
+    IF CURRENT_TIMESTAMP < start_time_var THEN
         RAISE EXCEPTION 'Not Start Auction.';
-    ELSIF CURRENT_TIMESTAMP > end_time THEN
+    ELSIF CURRENT_TIMESTAMP > end_time_var THEN
         RAISE EXCEPTION 'Already Closing Auction.'; 
     END IF;
     RETURN NEW;
