@@ -34,14 +34,14 @@ DROP USER IF EXISTS seller;
 DROP USER IF EXISTS deliver;
 
 CREATE TABLE member_tb (
-    id      VARCHAR(100) PRIMARY KEY,
+    id      VARCHAR(100) NOT NULL PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL,
     pw      VARCHAR(255) NOT NULL,
     role    VARCHAR(20)  NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
 CREATE TABLE member_request_tb(
-    id      VARCHAR(100)    PRIMARY KEY,
+    id      VARCHAR(100)    NOT NULL PRIMARY KEY,
     name    VARCHAR(30)     NOT NULL,
     pw      VARCHAR(255)    NOT NULL,
     role    VARCHAR(20)     NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
@@ -205,13 +205,13 @@ GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
 INSERT INTO employee_tb values
-('manager', 'qwer1234', '매니저', 'role_manager'),
-('cs', 'qwer1234', '고객서비스', 'role_cs');
+('manager', 'qwer1234', 'manager', 'role_manager'),
+('cs', 'qwer1234', 'customer service', 'role_cs');
 
 INSERT INTO member_tb values
-('seller', 'qwer1234', '판매자', 'role_seller'),
-('buyer', 'qwer1234', '구매자', 'role_buyer'),
-('deliver', 'qwer1234', '운송업자', 'role_deliver');
+('seller', 'qwer1234', 'seller', 'role_seller'),
+('buyer', 'qwer1234', 'buyer', 'role_buyer'),
+('deliver', 'qwer1234', 'deliver', 'role_deliver');
 
 
 CREATE OR REPLACE FUNCTION check_auction_validation()
