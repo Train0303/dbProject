@@ -15,12 +15,15 @@ class Employee:
     dbname:str='dbproject'
     port:int=5432
     conn = None
+    id:str = ''
     
     def __init__(self, **kwargs):
-        if kwargs.get('conn'):
+        if kwargs.get('conn') and kwargs.get('id'):
             self.conn = kwargs['conn']
+            self.id = kwargs.get('id')
         elif kwargs.get('id'):
             try:
+                
                 self.conn = psycopg2.connect(host=self.host, 
                                             user=kwargs['id'], 
                                             password=kwargs.get('pw'),
