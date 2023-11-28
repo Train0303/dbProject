@@ -50,6 +50,7 @@ CREATE TABLE member_request_tb(
 CREATE TABLE location_tb (
     id      BIGSERIAL	 PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL
+    -- todo: add cascade?
 );
 
 CREATE TABLE delivery_area_tb(
