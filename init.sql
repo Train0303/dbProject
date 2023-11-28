@@ -107,7 +107,7 @@ CREATE TABLE auction_tb(
     emp_id          VARCHAR(100)    ,
     product_id      BIGINT          NOT NULL,
     price           BIGINT   	    NOT NULL CHECK (price > 0),
-    status          VARCHAR(10)     NOT NULL CHECK (status = 'NOT_READY' or status = 'READY' or status = 'START' or status = 'END'),
+    verified        CHAR(1)         NOT NULL CHECK (verified = 'N' or verified = 'Y'),
     count           INT   	        NOT NULL CHECK (count > 0),
     start_time      TIMESTAMP       NOT NULL,
     end_time        TIMESTAMP       NOT NULL CHECK(end_time > start_time),
@@ -310,8 +310,8 @@ INSERT INTO product_tb(name, kind, description) VALUES
 ('각 수확한 수박팝니다', '수박', '싱싱한 수박 팝니다!!'),
 ('올해 수확한 햇쌀 팝니다', '쌀', '올해 수확한 햇쌀 20kg당 2만원에 팝니다.');
 
-INSERT INTO auction_tb(sel_id, buy_id, emp_id, product_id, price, status, count, start_time, end_time) VALUES
-('seller', NULL, NULL, 1, 10000, 'NOT_READY', 5, '2023-11-28 13:00:00', '2023-11-28 15:00:00'),
-('seller', NULL, NULL, 2, 10000, 'NOT_READY', 2, '2023-11-30 15:30:00', '2023-11-30 16:30:00');
-('seller', NULL, NULL, 3, 20000, 'NOT_READY', 4, '2024-06-23 12:13:14', '2024-06-24 15:00:00');
+INSERT INTO auction_tb(sel_id, buy_id, emp_id, product_id, price, verified, count, start_time, end_time) VALUES
+('seller', NULL, NULL, 1, 10000, 'N', 5, '2023-11-28 13:00:00', '2023-11-28 15:00:00'),
+('seller', NULL, NULL, 2, 10000, 'N', 2, '2023-11-30 15:30:00', '2023-11-30 16:30:00'),
+('seller', NULL, NULL, 3, 20000, 'N', 4, '2024-06-23 12:13:14', '2024-06-24 15:00:00');
 
