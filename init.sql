@@ -234,6 +234,7 @@ RETURNS TRIGGER AS $$
 DECLARE
     start_time_var   TIMESTAMP;
     end_time_var     TIMESTAMP;
+    is_verified      CHAR(1);
 BEGIN
     -- Check order_time Not Input
     IF NEW.order_time IS NOT NULL THEN
@@ -241,7 +242,12 @@ BEGIN
     END IF;
 
     NEW.order_time = CURRENT_TIMESTAMP;
-    SELECT start_time, end_time INTO start_time_var, end_time_var FROM auction_tb WHERE id = NEW.auc_id;
+    SELECT start_time, end_time, verified INTO start_time_var, end_time_var, is_verified FROM auction_tb WHERE id = NEW.auc_id;
+
+    -- Check Verified Auction
+    IF is_verified = 'N' THEN
+        RAISE EXCEPTION 'NOT VERIFIED Auction';
+    END IF;
 
     -- Check Auction Record Create Time < Auction End Time
     IF CURRENT_TIMESTAMP < start_time_var THEN
