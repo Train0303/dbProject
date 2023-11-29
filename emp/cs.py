@@ -1,4 +1,5 @@
 from employee import Employee
+from typing import List
 ## Custom Service 비지니스 로직
 
 class CustomService(Employee):
@@ -10,3 +11,55 @@ class CustomService(Employee):
         with self.conn.cursor() as cur:
             # 트랜잭션에 영향을 주지않는 세션 레벨의 명령어 -> commit()을 해줄 필요 없다.
             cur.execute("SET ROLE role_cs") 
+            
+    
+    def menu(self) -> None:
+        while True:
+            print("\n=======업무 선택=======")
+            
+            choice:str = input('1. 경매 기록 조회\n2. 입출금 기록 조회\n0. 나가기\nEnter: ')
+            if choice == '1':
+                self.process_auction_record()
+            elif choice == '2':
+                # 입출금 기록 조회 로직
+                pass
+            elif choice == '0':
+                break
+            
+
+    def process_auction_record(self) -> None:
+        print("\n=======경매 기록 조회 시스템=======")
+        
+        choice:str = input('1. 전체 기록 조회\n2. 회원 정보로 조회\n3. 경매 정보로 조회\n0. 나가기\nEnter: ')
+        if choice == '1':
+            print("\n=======전체 경매 기록=======\n")
+            result:List[tuple] = self._find_all_auction_record()
+            print(*result, sep='\n')
+        elif choice == '2':
+            member_id:str = input("회원정보 입력: ")
+            result:List[tuple] = self._find_by_buy_id(member_id)
+            print(*result, sep='\n')
+        elif choice == '0':
+            return
+
+    def _find_all_auction_record(self) -> List[tuple]:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT m.id, m.name, p.name, p.kind, ar.price, ar.order_time \
+                FROM auction_record_tb ar \
+                JOIN auction_tb a ON ar.auc_id = a.id \
+                JOIN member_tb m ON ar.buy_id = m.id \
+                JOIN product_tb p ON a.product_id = p.id \
+                ORDER BY order_time")
+            return cur.fetchall()
+    
+    def _find_by_buy_id(self, member_id:str) -> List[tuple]:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT m.id, m.name, p.name, p.kind, ar.price, ar.order_time \
+                FROM auction_record_tb ar \
+                JOIN auction_tb a ON ar.auc_id = a.id \
+                JOIN member_tb m ON ar.buy_id = m.id \
+                JOIN product_tb p ON a.product_id = p.id \
+                WHERE m.id = %s \
+                ORDER BY order_time", (member_id, ))
+            
+            return cur.fetchall()

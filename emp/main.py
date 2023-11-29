@@ -48,7 +48,7 @@ def start(login_info:Tuple[str, object]):
     elif login_info[0][1] == 'role_cs':
         print('cs팀으로 시작하셨습니다.')
         account = CustomService(id=login_info[0][0], conn=login_info[1])
-        # account.menu()
+        account.menu()
         # 로직
     
 def init() -> None:
