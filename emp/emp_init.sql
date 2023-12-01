@@ -10,9 +10,9 @@ INSERT INTO product_tb(name, kind, description) VALUES
 ('올해 수확한 햇쌀 팝니다', '쌀', '올해 수확한 햇쌀 20kg당 2만원에 팝니다.');
 
 INSERT INTO auction_tb(id, sel_id, buy_id, emp_id, product_id, price, verified, count, start_time, end_time) VALUES
-(1, 'seller', NULL, NULL, 1, 10000, 'Y', 5, '2023-11-25 13:00:00', '2023-12-30 15:00:00'),
-(2, 'seller', NULL, NULL, 2, 10000, 'Y', 2, '2023-11-29 15:30:00', '2023-12-30 16:30:00'),
-(3, 'seller', NULL, NULL, 3, 20000, 'N', 4, '2023-11-29 12:13:14', '2023-12-25 15:00:00');
+(1, 'seller', NULL, NULL, 1, 10000, 'Y', 5, '2023-11-25', '2023-12-30'),
+(2, 'seller', NULL, NULL, 2, 10000, 'Y', 2, '2023-11-29', '2023-12-30'),
+(3, 'seller', NULL, NULL, 3, 20000, 'N', 4, '2023-11-29', '2023-12-25');
 
 INSERT INTO auction_record_tb(id, buy_id, auc_id, price, order_time) VALUES
 (1, 'buy4', 1, 15000, NULL),

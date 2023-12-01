@@ -109,8 +109,8 @@ CREATE TABLE auction_tb(
     price           BIGINT   	    NOT NULL CHECK (price > 0),
     verified        CHAR(1)         NOT NULL CHECK (verified = 'N' or verified = 'Y'),
     count           INT   	        NOT NULL CHECK (count > 0),
-    start_time      TIMESTAMP       NOT NULL,
-    end_time        TIMESTAMP       NOT NULL CHECK(end_time > start_time),
+    start_time      DATE            NOT NULL,
+    end_time        DATE            NOT NULL CHECK(end_time >= start_time),
 
     FOREIGN KEY (sel_id) REFERENCES member_tb(id),
     FOREIGN KEY (buy_id) REFERENCES member_tb(id),
@@ -123,7 +123,7 @@ CREATE TABLE auction_record_tb(
     buy_id      VARCHAR(100)    NOT NULL,
     auc_id      BIGINT          NOT NULL,
     price       BIGINT          NOT NULL CHECK (price > 0),
-    order_time  TIMESTAMP       ,
+    order_time  DATE,
 
     FOREIGN KEY (buy_id) REFERENCES member_tb(id),
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id)
@@ -232,8 +232,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION check_auction_record_validation()
 RETURNS TRIGGER AS $$
 DECLARE
-    start_time_var   TIMESTAMP;
-    end_time_var     TIMESTAMP;
+    start_time_var   DATE;
+    end_time_var     DATE;
     is_verified      CHAR(1);
 BEGIN
     -- Check order_time Not Input
@@ -241,7 +241,7 @@ BEGIN
         RAISE EXCEPTION 'order_time is always null input.';
     END IF;
 
-    NEW.order_time = CURRENT_TIMESTAMP;
+    NEW.order_time = CURRENT_DATE;
     SELECT start_time, end_time, verified INTO start_time_var, end_time_var, is_verified FROM auction_tb WHERE id = NEW.auc_id;
 
     -- Check Verified Auction
@@ -250,9 +250,9 @@ BEGIN
     END IF;
 
     -- Check Auction Record Create Time < Auction End Time
-    IF CURRENT_TIMESTAMP < start_time_var THEN
+    IF NEW.order_time < start_time_var THEN
         RAISE EXCEPTION 'Not Start Auction.';
-    ELSIF CURRENT_TIMESTAMP > end_time_var THEN
+    ELSIF NEW.order_time > end_time_var THEN
         RAISE EXCEPTION 'Already Closing Auction.'; 
     END IF;
     RETURN NEW;
@@ -288,7 +288,6 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 
 CREATE TRIGGER auction_price_increase_trigger
 BEFORE UPDATE ON auction_tb
