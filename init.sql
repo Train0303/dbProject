@@ -215,7 +215,7 @@ INSERT INTO member_tb values
 ('deliver', 'qwer1234', 'deliver', 'role_deliver');
 
 
-CREATE OR REPLACE FUNCTION check_auction_validation()
+CREATE OR REPLACE FUNCTION check_auction_price_increase()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Check Auction Price monoton increasing
@@ -309,5 +309,3 @@ CREATE TRIGGER check_auction_record_validation_trigger
 BEFORE INSERT ON auction_record_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_auction_record_validation();
-
-
