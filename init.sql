@@ -37,6 +37,8 @@ CREATE TABLE member_tb (
     id      VARCHAR(100) NOT NULL PRIMARY KEY,
     name    VARCHAR(30)  NOT NULL,
     pw      VARCHAR(255) NOT NULL,
+    balance BIGINT   	 DEFAULT 0 CHECK (balance >= 0),
+    address VARCHAR(200) ,
     role    VARCHAR(20)  NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
@@ -44,6 +46,8 @@ CREATE TABLE member_request_tb(
     id      VARCHAR(100)    NOT NULL PRIMARY KEY,
     name    VARCHAR(30)     NOT NULL,
     pw      VARCHAR(255)    NOT NULL,
+    location_name VARCHAR(30) NOT NULL,
+    address VARCHAR(200)    NOT NULL, 
     role    VARCHAR(20)     NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
@@ -65,17 +69,17 @@ CREATE TABLE delivery_area_tb(
 CREATE TABLE account_tb(
     account_num VARCHAR(20)  PRIMARY KEY,
     mem_id      VARCHAR(100) NOT NULL,
-    balance     BIGINT   	 NOT NULL CHECK (balance >= 0)
+    FOREIGN KEY (mem_id) REFERENCES member_tb(id)
 );
 
 CREATE TABLE account_record_tb(
     id          BIGSERIAL	PRIMARY KEY,
-    account_num VARCHAR(20) NOT NULL,
-    sender      VARCHAR(20),
+    receiver    VARCHAR(100) NOT NULL,
+    sender      VARCHAR(100),
     money       BIGINT      NOT NULL,
 
-    FOREIGN KEY (account_num) REFERENCES account_tb(account_num),
-    FOREIGN KEY (sender) REFERENCES account_tb(account_num)
+    FOREIGN KEY (receiver) REFERENCES member_tb(id),
+    FOREIGN KEY (sender) REFERENCES member_tb(id)
 );
 
 CREATE TABLE product_tb(
@@ -109,6 +113,7 @@ CREATE TABLE auction_tb(
     price           BIGINT   	    NOT NULL CHECK (price > 0),
     verified        CHAR(1)         NOT NULL CHECK (verified = 'N' or verified = 'Y'),
     count           INT   	        NOT NULL CHECK (count > 0),
+    adjust          CHAR(1)         NOT NULL CHECK (adjust = 'N' or adjust = 'Y'),
     start_time      DATE            NOT NULL,
     end_time        DATE            NOT NULL CHECK(end_time >= start_time),
 
@@ -134,7 +139,7 @@ CREATE TABLE delivery_tb(
     dist_id     VARCHAR(100)    NOT NULL,
     dest        VARCHAR(200)    NOT NULL,
     time_limit  TIMESTAMP       NOT NULL,
-    status      VARCHAR(20)     NOT NULL,
+    status      VARCHAR(20)     NOT NULL CHECK(status = 'READY' OR status = 'IN PROGRESS' OR status = 'DELIVERED'),
 
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id),
     FOREIGN KEY (dist_id) REFERENCES member_tb(id),
