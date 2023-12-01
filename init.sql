@@ -53,7 +53,7 @@ CREATE TABLE member_request_tb(
 
 CREATE TABLE location_tb (
     id      BIGSERIAL	 PRIMARY KEY,
-    name    VARCHAR(30)  NOT NULL
+    name    VARCHAR(30)  NOT NULL UNIQUE
     -- todo: add cascade?
 );
 
@@ -64,12 +64,6 @@ CREATE TABLE delivery_area_tb(
     FOREIGN KEY (mem_id) REFERENCES member_tb(id),
     FOREIGN KEY (loc_id) REFERENCES location_tb(id),
     PRIMARY KEY (mem_id, loc_id)
-);
-
-CREATE TABLE account_tb(
-    account_num VARCHAR(20)  PRIMARY KEY,
-    mem_id      VARCHAR(100) NOT NULL,
-    FOREIGN KEY (mem_id) REFERENCES member_tb(id)
 );
 
 CREATE TABLE account_record_tb(
