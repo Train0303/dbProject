@@ -1,6 +1,6 @@
 import psycopg2
 
-id = None
+id = 'db2023' # todo: change to default id
 conn = psycopg2.connect(
     dbname = "dbproject",
     user = "db2023",
@@ -22,25 +22,28 @@ class Login:
     def _print(self):
         global conn, cursor, id
 
-        id = input("ID: ")
-        pw = input("PW: ")
+        print("=====================================")
+        print("로그인을 위해 아이디와 비밀번호를 입력해 주세요\n")
+        # id = input("ID: ")
+        # pw = input("PW: ")
 
-        if(conn != None):
-            close()
-        conn = psycopg2.connect(
-            dbname = "dbproject",
-            user = id,
-            password = pw,
-            host = "::1",
-            port = 5432
-        )
-        cursor = conn.cursor()
-        cursor.execute(f"select role from member_tb where id = '{id}'")
-        r = cursor.fetchone()
-
+        # if(conn != None):
+        #     close()
+        # conn = psycopg2.connect(
+        #     dbname = "dbproject",
+        #     user = id,
+        #     password = pw,
+        #     host = "::1",
+        #     port = 5432
+        # )
+        # cursor = conn.cursor()
+        # cursor.execute(f"select role from member_tb where id = '{id}'")
+        # r = cursor.fetchone()
+        r = ['role_buyer']
         print("Login Success")
-        return  -1 if (r[0] == 'role_buyer') else \
-                -2 if (r[0] == 'role_seller') else \
+        print("=====================================")
+        return  -1 if (r[0] == 'role_seller') else \
+                -2 if (r[0] == 'role_buyer')  else \
                 -3 if (r[0] == 'role_deliver') else 0
 
 
@@ -50,7 +53,8 @@ class Menu:
         self.options = options
 
     def _print(self):
-        print(self.title)
+        print("=====================================")
+        print(self.title + '\n')
         for i in range(len(self.options)):
             print(f"{i + 1}. {self.options[i]}")
         
@@ -59,6 +63,7 @@ class Menu:
             userInput = int(input("Enter : "))
             if(userInput > 0 and userInput <= len(self.options)):
                 break
+        print("=====================================")
 
         return userInput
 
@@ -70,15 +75,18 @@ class QueryResult:
     def _print(self):
         global cursor
         
-        print(self.title)
+        print("=====================================")
+        print(self.title + '\n')
         
-        sql = self.query
-        sql = eval(f"f'{sql}'").format(id) if "{id}" in sql else sql
+        sql = self.query.replace("__id__", id)
         cursor.execute(sql)
 
         result = cursor.fetchall()
         for row in result:
             print(row)
+        print("=====================================")
+
+        return 0
 
 class QueryInsert:
     def __init__(self, title, table, keys, values):
@@ -88,18 +96,50 @@ class QueryInsert:
         self.values = values
     
     def _print(self):
-        global cursor, conn
-        insertValues = []
+        global cursor, conn, id
+        userInput = []
 
-        print(self.title)
+        print("=====================================")
+        print(self.title + '\n')
+
         for i in range(len(self.values)):
             if(self.values[i] == '?'):
-                insertValues.append(input("Enter " + self.keys[i] + ": "))
+                userInput.append(input("Enter " + self.keys[i] + ": "))
+            else:
+                userInput.append(self.values[i])
 
-        sql = f"INSERT INTO {self.table} ({','.join(self.keys)}) VALUES ({str(insertValues)[1:-1]})"
-        sql = eval(f"f'{sql}'").format(id) if "{id}" in sql else sql
+        sql = f"INSERT INTO {self.table} ({','.join(self.keys)}) VALUES ({str(userInput)[1:-1]})"
+        sql = sql.replace("__id__", id)
+        # todo: protect sql injection
         cursor.execute(sql)
         conn.commit()
+        print("=====================================")
+
+        return 0
+
+class QueryTransaction:
+    def __init__(self, title, sqls, keys):
+        self.title = title
+        self.sqls = sqls
+        self.keys = keys
+    
+    def _print(self):
+        global cursor, conn, id
+        userInput = []
+
+        print("=====================================")
+        print(self.title + '\n')
+
+        for i in range(len(self.keys)):
+            userInput.append(input("Enter " + self.keys[i] + ": "))
+
+        for sql in self.sqls:
+            sql = sql.replace("__id__", id)
+            sql = sql.format(*userInput)
+            cursor.execute(sql)
+        
+        conn.commit()
+        print("=====================================")
 
         return 0
 
