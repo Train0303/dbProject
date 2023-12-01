@@ -18,16 +18,13 @@ class Manager(Employee):
         
         while (True):
             print("\n=======업무 선택=======")
-            choice:str = input('1. 가입요청 관리\n2. 경매 관리\n3. 자료 관리\n4. 직원 권한 변경\n0. 나가기\nEnter: ')
+            choice:str = input('1. 가입요청 관리\n2. 경매 관리\n3. 직원 권한 변경\n0. 나가기\nEnter: ')
             
             if choice == '1':
                 self.process_signup_request()
             elif choice == '2':
                 self.process_auction_manage()
             elif choice == '3':
-                # 자료 관리 로직
-                pass
-            elif choice == '4':
                 self.process_promote_employee_request()
             elif choice == '0':
                 break
@@ -35,10 +32,10 @@ class Manager(Employee):
     def process_auction_manage(self) -> None:
         choice:str = input("""1. 경매 조회\n2. 경매 수정\nEnter: """)
         if choice == '1':
-            result:List[tuple] = self._find_all_auction_list()
+            result:List[dict] = self._find_all_auction_list()
             print(*result, sep = '\n')
         elif choice == '2':
-            result:List[tuple] = self._find_not_verified_auction_list()
+            result:List[dict] = self._find_not_verified_auction_list()
             self._change_auction_status(result)
     
     def process_signup_request(self) -> None:
@@ -89,7 +86,7 @@ class Manager(Employee):
                 print("잘못된 입력입니다!!")  
             else: 
                 try:
-                    id, pw, name, role = request
+                    id, pw, name, role = result[int(choice)-1]
                     cur.execute("INSERT INTO member_tb(id, pw, name, role) VALUES(%s, %s, %s, %s);", (id, pw, name, role))
                     cur.execute("DELETE FROM member_request_tb WHERE id = %s;", (id, ))
                     cur.execute("CREATE USER %s PASSWORD %s;", (AsIs(id), pw, ))
@@ -104,7 +101,7 @@ class Manager(Employee):
             cur.execute("SELECT id, pw, name, role FROM employee_request_tb")
             result:List[Tuple[tuple]] = cur.fetchall()
             for i, request in enumerate(result):
-                print(f"{i+1} - ID : {request[0]}, Name : {request[2]}")
+                print(f"{i+1} - ID : {request[0]}, Name : {request[2]}, Role : {request[3]}")
                 
             choice = input("\n회원 전환할 번호를 입력해주세요: ")
         
@@ -112,7 +109,7 @@ class Manager(Employee):
                 print("잘못된 입력입니다!!")  
             else: 
                 try:
-                    id, pw, name, role = result[choice-1]
+                    id, pw, name, role = result[int(choice)-1]
                     cur.execute("INSERT INTO employee_tb(id, pw, name, role) VALUES(%s, %s, %s, %s);", (id, pw, name, role))
                     cur.execute("DELETE FROM employee_request_tb WHERE id = %s;", (id, ))
                     cur.execute("CREATE USER %s PASSWORD %s;", (AsIs(id), pw, ))
@@ -121,29 +118,54 @@ class Manager(Employee):
                 except Exception as e:
                     print(e)
                     self.conn.rollback()
-    
+                    
+            print("회원 생성이 완료되었습니다!")
         
         
-    def _find_all_auction_list(self) -> List[tuple]:
+    def _find_all_auction_list(self) -> List[dict]:
         with self.conn.cursor() as cur:
             cur.execute("SELECT a.id, a.sel_id, a.product_id, p.name, a.price, a.verified, a.count, a.start_time, a.end_time\
                 FROM auction_tb a\
                 JOIN product_tb p on product_id = p.id\
                 ORDER BY a.id desc")
             print('\n=======경매 목록=======')
-            return cur.fetchall()
+            return [
+                {
+                    "auctionId": data[0],
+                    'sellerId': data[1],
+                    'productId': data[2],
+                    'productName': data[3],
+                    'auctionPrice': data[4],
+                    'verified': data[5],
+                    'count': data[6],
+                    'start_time': data[7].strftime("%Y-%m-%d"),
+                    'end_time': data[8].strftime("%Y-%m-%d")
+                }
+                for data in cur.fetchall()]
         
     
-    def _find_not_verified_auction_list(self) -> List[tuple]:
+    def _find_not_verified_auction_list(self) -> List[dict]:
         with self.conn.cursor() as cur:
             cur.execute("SELECT a.id, a.sel_id, a.product_id, p.name, a.price, a.verified, a.count, a.start_time, a.end_time\
                 FROM auction_tb a\
                 JOIN product_tb p on product_id = p.id\
                 WHERE a.verified = 'N'\
                 ORDER BY a.id DESC")
-            return cur.fetchall()
+            return[
+                {
+                    "auctionId": data[0],
+                    'sellerId': data[1],
+                    'productId': data[2],
+                    'productName': data[3],
+                    'auctionPrice': data[4],
+                    'verified': data[5],
+                    'count': data[6],
+                    'start_time': data[7].strftime("%Y-%m-%d"),
+                    'end_time': data[8].strftime("%Y-%m-%d")
+                }
+                for data in cur.fetchall()]
     
-    def _change_auction_status(self, result:List[tuple]) -> None:
+    def _change_auction_status(self, result:List[dict]) -> None:
         
         print('\n=======경매 목록=======')
         for i, data in enumerate(result):
@@ -154,7 +176,8 @@ class Manager(Employee):
                 print("잘못된 입력입니다!!") 
         else:
             with self.conn.cursor() as cur:
-                cur.execute("UPDATE auction_tb SET verified = 'Y', emp_id = %s WHERE id = %s;", (self.id, result[int(choice)-1][0],))
+                cur.execute("UPDATE auction_tb SET verified = 'Y', emp_id = %s WHERE id = %s;", 
+                            (self.id, result[int(choice)-1]['auctionId'], ))
             self.conn.commit()
         
         print("경매 수정이 완료되었습니다.")
