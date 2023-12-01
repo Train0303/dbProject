@@ -1,6 +1,5 @@
 DROP TABLE IF EXISTS delivery_area_tb;
 DROP TABLE IF EXISTS account_record_tb;
-DROP TABLE IF EXISTS account_tb;
 DROP TABLE IF EXISTS auction_record_tb;
 DROP TABLE IF EXISTS delivery_tb;
 DROP TABLE IF EXISTS auction_tb;
@@ -105,7 +104,7 @@ CREATE TABLE auction_tb(
     emp_id          VARCHAR(100)    ,
     product_id      BIGINT          NOT NULL,
     price           BIGINT   	    NOT NULL CHECK (price > 0),
-    verified        CHAR(1)         NOT NULL CHECK (verified = 'N' or verified = 'Y'),
+    verified        CHAR(1)         DEFAULT 'N' CHECK (verified = 'N' or verified = 'Y'),
     count           INT   	        NOT NULL CHECK (count > 0),
     adjust          CHAR(1)         NOT NULL CHECK (adjust = 'N' or adjust = 'Y'),
     start_time      DATE            NOT NULL,
@@ -122,7 +121,7 @@ CREATE TABLE auction_record_tb(
     buy_id      VARCHAR(100)    NOT NULL,
     auc_id      BIGINT          NOT NULL,
     price       BIGINT          NOT NULL CHECK (price > 0),
-    order_time  DATE,
+    order_time  TIMESTAMP,
 
     FOREIGN KEY (buy_id) REFERENCES member_tb(id),
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id)
@@ -208,7 +207,7 @@ INSERT INTO employee_tb values
 ('manager', 'qwer1234', 'manager', 'role_manager'),
 ('cs', 'qwer1234', 'customer service', 'role_cs');
 
-INSERT INTO member_tb values
+INSERT INTO member_tb(id, pw, name, role) values
 ('seller', 'qwer1234', 'seller', 'role_seller'),
 ('buyer', 'qwer1234', 'buyer', 'role_buyer'),
 ('deliver', 'qwer1234', 'deliver', 'role_deliver');
@@ -240,7 +239,7 @@ BEGIN
         RAISE EXCEPTION 'order_time is always null input.';
     END IF;
 
-    NEW.order_time = CURRENT_DATE;
+    NEW.order_time = CURRENT_TIMESTAMP;
     SELECT start_time, end_time, verified INTO start_time_var, end_time_var, is_verified FROM auction_tb WHERE id = NEW.auc_id;
 
     -- Check Verified Auction
