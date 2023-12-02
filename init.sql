@@ -132,7 +132,7 @@ CREATE TABLE delivery_tb(
     status      VARCHAR(20)     NOT NULL CHECK(status = 'READY' OR status = 'IN_PROGRESS' OR status = 'DELIVERED'),
 
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id),
-    FOREIGN KEY (dist_id) REFERENCES member_tb(id),
+    FOREIGN KEY (deli_id) REFERENCES member_tb(id),
     FOREIGN KEY (loc_id) REFERENCES location_tb(id),
     PRIMARY KEY (auc_id, dist_id)
 );
