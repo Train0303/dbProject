@@ -67,7 +67,8 @@ CREATE TABLE account_record_tb(
     receiver    VARCHAR(100),
     sender      VARCHAR(100),
     money       BIGINT      NOT NULL CHECK(money > 0),
-    
+    created_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+
     CHECK(receiver IS NOT NULL OR sender IS NOT NULL),
     FOREIGN KEY (receiver) REFERENCES member_tb(id),
     FOREIGN KEY (sender) REFERENCES member_tb(id)
