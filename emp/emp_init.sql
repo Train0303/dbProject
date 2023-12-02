@@ -1,7 +1,20 @@
 insert into member_tb (id, name, pw, role) values 
 ('buy4', 'buy4', 'qwer1234', 'role_buyer'),
 ('buy5', 'buy5', 'qwer1234', 'role_buyer'),
-('buy6', 'buy6', 'qwer1234', 'role_buyer');
+('seller2', '판매자2', 'qwer1234', 'role_seller'),
+('seller3', '판매자3', 'qwer1234', 'role_seller');
+
+CREATE USER buy4 PASSWORD 'qwer1234';
+GRANT role_buyer TO buy4;
+
+CREATE USER buy5 PASSWORD 'qwer1234';
+GRANT role_buyer TO buy5;
+
+CREATE USER seller2 PASSWORD 'qwer1234';
+GRANT role_seller TO seller2;
+
+CREATE USER seller3 PASSWORD 'qwer1234';
+GRANT role_seller TO seller3;
 
 INSERT INTO product_tb(name, kind, description) VALUES
 ('얼음골 사과 1kg 팝니다', '사과', '얼음골 꿀사과 1kg 만원입니다.'),
@@ -16,5 +29,10 @@ INSERT INTO auction_tb(id, sel_id, buy_id, emp_id, product_id, price, verified, 
 
 INSERT INTO auction_record_tb(id, buy_id, auc_id, price, order_time) VALUES
 (1, 'buy4', 1, 15000, NULL),
-(2, 'buy5', 1, 20000, NULL),
-(3, 'buy6', 2, 30000, NULL);
+(2, 'buy5', 1, 20000, NULL);
+
+INSERT INTO account_record_tb(receiver, sender, money) VALUES
+('seller', 'buy4', 10000),
+('buy4', NULL, -10000),
+('buy5', NULL, 10000),
+('seller2', 'buy5', 10000);
