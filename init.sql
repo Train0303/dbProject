@@ -134,7 +134,7 @@ CREATE TABLE delivery_tb(
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id),
     FOREIGN KEY (deli_id) REFERENCES member_tb(id),
     FOREIGN KEY (loc_id) REFERENCES location_tb(id),
-    PRIMARY KEY (auc_id, dist_id)
+    PRIMARY KEY (auc_id, deli_id)
 );
 
 
