@@ -64,10 +64,11 @@ CREATE TABLE delivery_area_tb(
 
 CREATE TABLE account_record_tb(
     id          BIGSERIAL	PRIMARY KEY,
-    receiver    VARCHAR(100) NOT NULL,
+    receiver    VARCHAR(100),
     sender      VARCHAR(100),
-    money       BIGINT      NOT NULL,
-
+    money       BIGINT      NOT NULL CHECK(money > 0),
+    
+    CHECK(receiver IS NOT NULL OR sender IS NOT NULL),
     FOREIGN KEY (receiver) REFERENCES member_tb(id),
     FOREIGN KEY (sender) REFERENCES member_tb(id)
 );
