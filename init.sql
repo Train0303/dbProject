@@ -37,7 +37,6 @@ CREATE TABLE member_tb (
     name    VARCHAR(30)  NOT NULL,
     pw      VARCHAR(255) NOT NULL,
     balance BIGINT   	 DEFAULT 0 CHECK (balance >= 0),
-    address VARCHAR(200) ,
     role    VARCHAR(20)  NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
@@ -45,8 +44,6 @@ CREATE TABLE member_request_tb(
     id      VARCHAR(100)    NOT NULL PRIMARY KEY,
     name    VARCHAR(30)     NOT NULL,
     pw      VARCHAR(255)    NOT NULL,
-    location_name VARCHAR(30) NOT NULL,
-    address VARCHAR(200)    NOT NULL, 
     role    VARCHAR(20)     NOT NULL CHECK (role = 'role_buyer' OR role = 'role_seller' OR role = 'role_deliver')
 );
 
@@ -129,13 +126,14 @@ CREATE TABLE auction_record_tb(
 
 CREATE TABLE delivery_tb(
     auc_id      BIGINT  	    NOT NULL,
-    dist_id     VARCHAR(100)    NOT NULL,
-    dest        VARCHAR(200)    NOT NULL,
-    time_limit  TIMESTAMP       NOT NULL,
-    status      VARCHAR(20)     NOT NULL CHECK(status = 'READY' OR status = 'IN PROGRESS' OR status = 'DELIVERED'),
+    deli_id  VARCHAR(100)               ,
+    loc_id      BIGINT          NOT NULL,
+    address     VARCHAR(200)    NOT NULL,
+    status      VARCHAR(20)     NOT NULL CHECK(status = 'READY' OR status = 'IN_PROGRESS' OR status = 'DELIVERED'),
 
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id),
     FOREIGN KEY (dist_id) REFERENCES member_tb(id),
+    FOREIGN KEY (loc_id) REFERENCES location_tb(id),
     PRIMARY KEY (auc_id, dist_id)
 );
 
@@ -143,24 +141,29 @@ CREATE TABLE delivery_tb(
 DO
 $$
 BEGIN
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') THEN
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_manager') then
         CREATE ROLE ROLE_MANAGER WITH CREATEROLE INHERIT;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_MANAGER;
     END IF;
 
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') THEN
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') then
         CREATE ROLE ROLE_CS;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
     END IF;
 
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_buyer') THEN
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_buyer') then
         CREATE ROLE ROLE_BUYER;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
     END IF;
 
-    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_seller') THEN
+    IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_seller') then 
         CREATE ROLE ROLE_SELLER;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_deliver') THEN
         CREATE ROLE ROLE_DELIVER;
+	    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
@@ -198,11 +201,6 @@ $$
 
 GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
 GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_MANAGER;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
 INSERT INTO employee_tb values
 ('manager', 'qwer1234', 'manager', 'role_manager'),
 ('cs', 'qwer1234', 'customer service', 'role_cs');
