@@ -127,16 +127,16 @@ CREATE TABLE auction_record_tb(
 );
 
 CREATE TABLE delivery_tb(
+    id          BIGSERIAL	    PRIMARY KEY,
     auc_id      BIGINT  	    NOT NULL,
-    deli_id  VARCHAR(100)               ,
+    deli_id     VARCHAR(100)    ,
     loc_id      BIGINT          NOT NULL,
     address     VARCHAR(200)    NOT NULL,
     status      VARCHAR(20)     NOT NULL CHECK(status = 'READY' OR status = 'IN_PROGRESS' OR status = 'DELIVERED'),
 
     FOREIGN KEY (auc_id) REFERENCES auction_tb(id),
     FOREIGN KEY (deli_id) REFERENCES member_tb(id),
-    FOREIGN KEY (loc_id) REFERENCES location_tb(id),
-    PRIMARY KEY (auc_id, deli_id)
+    FOREIGN KEY (loc_id) REFERENCES location_tb(id)
 );
 
 

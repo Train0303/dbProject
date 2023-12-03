@@ -39,7 +39,7 @@ class Login:
         # cursor = conn.cursor()
         # cursor.execute(f"select role from member_tb where id = '{id}'")
         # r = cursor.fetchone()
-        r = ['role_buyer']
+        r = ['role_deliver']
         print("Login Success")
         print("=====================================")
         return  -1 if (r[0] == 'role_seller') else \
@@ -89,11 +89,10 @@ class QueryResult:
         return 0
 
 class QueryInsert:
-    def __init__(self, title, table, keys, values):
+    def __init__(self, title, sql, keys):
         self.title = title
-        self.table = table
+        self.sql = sql
         self.keys = keys
-        self.values = values
     
     def _print(self):
         global cursor, conn, id
@@ -102,16 +101,13 @@ class QueryInsert:
         print("=====================================")
         print(self.title + '\n')
 
-        for i in range(len(self.values)):
-            if(self.values[i] == '?'):
-                userInput.append(input("Enter " + self.keys[i] + ": "))
-            else:
-                userInput.append(self.values[i])
+        for i in range(len(self.keys)):
+            userInput.append(input("Enter " + self.keys[i] + ": "))
 
-        sql = f"INSERT INTO {self.table} ({','.join(self.keys)}) VALUES ({str(userInput)[1:-1]})"
-        sql = sql.replace("__id__", id)
-        # todo: protect sql injection
+        sql = self.sql.replace("__id__", id)
+        sql = sql.format(*userInput)
         cursor.execute(sql)
+
         conn.commit()
         print("=====================================")
 

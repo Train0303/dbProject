@@ -21,3 +21,9 @@ insert into product_tb (id, name, kind, description) values
     (4, 'product4', 'kind4', 'des4'), 
     (5, 'product5', 'kind5', 'des5'),
     (6, 'product6', 'kind6', 'des6');
+
+-- auction_tb
+INSERT INTO auction_tb(id, sel_id, buy_id, emp_id, product_id, price, verified, count, adjust ,start_time, end_time) VALUES
+(1, 'seller', NULL, NULL, 1, 10000, 'Y', 5, 'N', '2023-11-25', '2023-12-29'),
+(2, 'seller', NULL, NULL, 2, 10000, 'Y', 2, 'N', '2023-11-29', '2023-12-30'),
+(3, 'seller', NULL, NULL, 3, 20000, 'N', 4, 'N', '2023-11-29', '2023-12-25');

@@ -14,8 +14,8 @@ for i in range(len(all_menus)):
 while(True):
     cur_indx = cur_menu[cur_indx]._print()
     if(cur_indx < 0):
-        cur_menu =  menus.seller_menu if cur_indx == -1 else\
-                    menus.buyer_menu if cur_indx == -2 else\
-                    menus.login_menu if cur_indx == -3 else\
+        cur_menu =  menus.seller_menu  if cur_indx == -1 else\
+                    menus.buyer_menu   if cur_indx == -2 else\
+                    menus.deliver_menu if cur_indx == -3 else\
                     menus.login_menu
         cur_indx = 0
