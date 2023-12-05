@@ -150,26 +150,46 @@ BEGIN
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_cs') then
         CREATE ROLE ROLE_CS;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
+        -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_CS;
+        GRANT SELECT ON ALL TABLES IN SCHEMA public to ROLE_CS;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_buyer') then
         CREATE ROLE ROLE_BUYER;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
+        -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_BUYER;
+        GRANT INSERT ON delivery_tb to ROLE_BUYER; 
+        GRANT INSERT ON account_record_tb to ROLE_BUYER;
+        GRANT INSERT ON auction_record_tb to ROLE_BUYER;
+        GRANT SELECT, UPDATE ON auction_tb to ROLE_BUYER;
+        GRANT SELECT, UPDATE ON member_tb to ROLE_BUYER;
+        GRANT SELECT, USAGE ON SEQUENCE delivery_tb_id_seq to ROLE_BUYER;
+        GRANT SELECT, USAGE ON SEQUENCE account_record_tb_id_seq to ROLE_BUYER;
+        GRANT SELECT, USAGE ON SEQUENCE auction_record_tb_id_seq to ROLE_BUYER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_seller') then 
         CREATE ROLE ROLE_SELLER;
-        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
+        -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_SELLER;
+        GRANT SELECT, INSERT ON auction_tb to ROLE_SELLER;
+        GRANT SELECT, UPDATE ON member_tb to ROLE_SELLER;
+        GRANT INSERT ON account_record_tb to ROLE_SELLER;
+        GRANT SELECT, USAGE ON SEQUENCE auction_tb_id_seq to ROLE_SELLER;
+        GRANT SELECT, USAGE ON SEQUENCE account_record_tb_id_seq to ROLE_SELLER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'role_deliver') THEN
         CREATE ROLE ROLE_DELIVER;
-	    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
+	    -- GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public to ROLE_DELIVER;
+        GRANT SELECT, UPDATE ON delivery_tb to ROLE_DELIVER;
+        GRANT SELECT, INSERT ON location_tb to ROLE_DELIVER;
+        GRANT SELECT, INSERT, DELETE ON delivery_area_tb to ROLE_DELIVER;
+        GRANT SELECT, USAGE ON SEQUENCE location_tb_id_seq to ROLE_DELIVER;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'temp_account') THEN
         CREATE ROLE TEMP_ACCOUNT WITH LOGIN PASSWORD '';
+        GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
+        GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
     END IF;
 
     IF NOT EXISTS (SELECT * FROM pg_user WHERE usename = 'manager') THEN
@@ -200,10 +220,7 @@ END
 $$
 ;
 
-
-GRANT INSERT ON TABLE member_request_tb TO TEMP_ACCOUNT;
-GRANT INSERT ON TABLE employee_request_tb TO TEMP_ACCOUNT;
-INSERT INTO employee_tb values
+INSERT INTO employee_tb (id, pw, name, role) values
 ('manager', 'qwer1234', 'manager', 'role_manager'),
 ('cs', 'qwer1234', 'customer service', 'role_cs');
 
@@ -260,11 +277,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION check_id_in_member()
 RETURNS TRIGGER AS $$
 DECLARE
-    member_id VARCHAR(100);
+    member_id       VARCHAR(100);
+    employee_id     VARCHAR(100);
+    emp_request_id  VARCHAR(100);
 BEGIN
     SELECT id INTO member_id FROM member_tb WHERE member_tb.id = NEW.id;
-
-    IF count(member_id) > 0 THEN
+    SELECT id INTO employee_id FROM employee_tb WHERE employee_tb.id = NEW.id;
+    SELECT id INTO emp_request_id FROM employee_request_tb WHERE employee_request_tb.id = NEW.id;
+    
+    IF count(member_id) > 0 OR count(employee_id) > 0 OR count(emp_request_id) > 0 THEN
         RAISE EXCEPTION 'Already Id in Member!';
     END IF;
 
@@ -275,11 +296,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION check_id_in_employee()
 RETURNS TRIGGER AS $$
 DECLARE
-    employee_id VARCHAR(100);
+    employee_id     VARCHAR(100);
+    member_id       VARCHAR(100);
+    mem_request_id  VARCHAR(100);
 BEGIN
     SELECT id INTO employee_id FROM employee_tb WHERE id = NEW.id;
+    SELECT id INTO member_id FROM member_tb WHERE member_tb.id = NEW.id;
+    SELECT id INTO mem_request_id FROM member_request_tb WHERE member_request_tb.id = NEW.id;
 
-    IF count(employee_id) > 0 THEN
+    IF count(employee_id) > 0 OR count(member_id) > 0 OR count(mem_request_id) > 0 THEN
         RAISE EXCEPTION 'Already Id in Member!';
     END IF;
 
