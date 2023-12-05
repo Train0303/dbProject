@@ -30,7 +30,7 @@ class Manager(Employee):
                 break
     
     def process_auction_manage(self) -> None:
-        choice:str = input("""1. 경매 조회\n2. 경매 수정\nEnter: """)
+        choice:str = input("""\n1. 경매 조회\n2. 경매 수정\nEnter: """)
         if choice == '1':
             result:List[dict] = self._find_all_auction_list()
             print(*result, sep = '\n')
@@ -39,7 +39,7 @@ class Manager(Employee):
             self._change_auction_status(result)
     
     def process_signup_request(self) -> None:
-        choice:str = input("""1. 회원\n2. 직원\n0. 나가기\nEnter: """)
+        choice:str = input("""\n1. 회원\n2. 직원\n0. 나가기\nEnter: """)
         if choice == '1':
             self._manage_member()
         elif choice == '2':
@@ -72,6 +72,7 @@ class Manager(Employee):
             except Exception as e:
                 print(e)
                 self.conn.rollback()
+                return 
 
     def _manage_member(self) -> None:
         with self.conn.cursor() as cur:
@@ -92,6 +93,7 @@ class Manager(Employee):
                     cur.execute("CREATE USER %s PASSWORD %s;", (AsIs(id), pw, ))
                     cur.execute("GRANT %s TO %s", (AsIs(role), AsIs(id), ))
                     self.conn.commit()
+                    print("회원 생성이 완료되었습니다!")
                 except Exception as e:
                     print(e)
                     self.conn.rollback()
@@ -103,10 +105,11 @@ class Manager(Employee):
             for i, request in enumerate(result):
                 print(f"{i+1} - ID : {request[0]}, Name : {request[2]}, Role : {request[3]}")
                 
-            choice = input("\n회원 전환할 번호를 입력해주세요: ")
+            choice = input("\n직원 전환할 번호를 입력해주세요: ")
         
             if not choice.isdigit() or (int(choice) > len(result) or int(choice) <= 0):
                 print("잘못된 입력입니다!!")  
+                return
             else: 
                 try:
                     id, pw, name, role = result[int(choice)-1]
@@ -115,12 +118,12 @@ class Manager(Employee):
                     cur.execute("CREATE USER %s PASSWORD %s;", (AsIs(id), pw, ))
                     cur.execute("GRANT %s TO %s", (AsIs(role), AsIs(id), ))
                     self.conn.commit()
+                    print("직원 생성이 완료되었습니다!")
                 except Exception as e:
                     print(e)
                     self.conn.rollback()
                     
-            print("회원 생성이 완료되었습니다!")
-        
+            
         
     def _find_all_auction_list(self) -> List[dict]:
         with self.conn.cursor() as cur:
@@ -179,5 +182,4 @@ class Manager(Employee):
                 cur.execute("UPDATE auction_tb SET verified = 'Y', emp_id = %s WHERE id = %s;", 
                             (self.id, result[int(choice)-1]['auctionId'], ))
             self.conn.commit()
-        
-        print("경매 수정이 완료되었습니다.")
+            print("경매 수정이 완료되었습니다.")

@@ -117,8 +117,8 @@ class CustomService(Employee):
         with self.conn.cursor() as cur:
             cur.execute("SELECT m.id, m.name, a.id, p.name, p.kind, ar.price, ar.order_time \
                 FROM auction_record_tb ar \
-                auction_tb a ON ar.auc_id = a.id \
-                member_tb m ON ar.buy_id = m.id \
+                JOIN auction_tb a ON ar.auc_id = a.id \
+                JOIN member_tb m ON ar.buy_id = m.id \
                 JOIN product_tb p ON a.product_id = p.id \
                 WHERE a.id = %s \
                 ORDER BY order_time", (auc_id, ))
