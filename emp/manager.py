@@ -1,5 +1,5 @@
 from employee import Employee
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Any
 from psycopg2.extensions import AsIs
 
 ## 매니저 비즈니스 로직
@@ -18,7 +18,7 @@ class Manager(Employee):
         
         while (True):
             print("\n=======업무 선택=======")
-            choice:str = input('1. 가입요청 관리\n2. 경매 관리\n3. 직원 권한 변경\n0. 나가기\nEnter: ')
+            choice:str = input('1. 가입요청 관리\n2. 경매 관리\n3. 직원 권한 변경\n4. 정산하기\n0. 나가기\nEnter: ')
             
             if choice == '1':
                 self.process_signup_request()
@@ -26,6 +26,8 @@ class Manager(Employee):
                 self.process_auction_manage()
             elif choice == '3':
                 self.process_promote_employee_request()
+            elif choice == '4':
+                self.process_adjustment()
             elif choice == '0':
                 break
     
@@ -74,6 +76,36 @@ class Manager(Employee):
                 self.conn.rollback()
                 return 
 
+    def process_adjustment(self) -> None:
+        print("\n=======정산 시스템=======")
+        
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT id, sel_id, buy_id, price, count FROM auction_tb WHERE end_time <= CURRENT_TIMESTAMP AND emp_id = %s AND adjust='N';", (self.id, ))
+            result:List[dict] = [
+                {
+                    'id': data[0],
+                    'sel_id': data[1],
+                    'buy_id': data[2],
+                    'price': data[3],
+                    'count': data[4]
+                }
+                for data in cur.fetchall()]
+            cur.execute("SAVEPOINT adjust_save_point;")
+            for adjust_data in result:
+                try:
+                    total_price = adjust_data['price'] * adjust_data['count']
+                    cur.execute("UPDATE member_tb SET balance = balance-%s WHERE id = %s;", (total_price, adjust_data['buy_id'], ))
+                    cur.execute("UPDATE member_tb SET balance = balance+%s WHERE id = %s;", (total_price, adjust_data['sel_id'], ))
+                    cur.execute("INSERT INTO account_record_tb(receiver, sender, money) VALUES(%s, %s, %s);", (adjust_data['sel_id'], adjust_data['buy_id'], total_price, ))
+                    cur.execute("UPDATE auction_tb SET adjust = 'Y' WHERE id = %s;", (adjust_data['id'], ))
+                    self.conn.commit()
+                    cur.execute("SAVEPOINT adjust_save_point;")
+                except Exception as e:
+                    print(e)
+                    cur.execute("ROLLBACK TO SAVEPOINT adjust_save_point;")
+            
+            print("정산이 완료되었습니다.")
+    
     def _manage_member(self) -> None:
         with self.conn.cursor() as cur:
             cur.execute("SELECT id, pw, name, role FROM member_request_tb")

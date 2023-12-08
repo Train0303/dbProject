@@ -105,7 +105,7 @@ CREATE TABLE auction_tb(
     price           BIGINT   	    NOT NULL CHECK (price > 0),
     verified        CHAR(1)         DEFAULT 'N' CHECK (verified = 'N' or verified = 'Y'),
     count           INT   	        NOT NULL CHECK (count > 0),
-    adjust          CHAR(1)         NOT NULL CHECK (adjust = 'N' or adjust = 'Y'),
+    adjust          CHAR(1)         DEFAULT 'N' CHECK (adjust = 'N' or adjust = 'Y'),
     start_time      DATE            NOT NULL,
     end_time        DATE            NOT NULL CHECK(end_time >= start_time),
 
@@ -139,7 +139,6 @@ CREATE TABLE delivery_tb(
     FOREIGN KEY (loc_id) REFERENCES location_tb(id)
 );
 
-
 DO
 $$
 BEGIN
@@ -160,7 +159,7 @@ BEGIN
         GRANT INSERT ON delivery_tb to ROLE_BUYER; 
         GRANT INSERT ON account_record_tb to ROLE_BUYER;
         GRANT INSERT ON auction_record_tb to ROLE_BUYER;
-        GRANT SELECT, UPDATE ON auction_tb to ROLE_BUYER;
+        GRANT SELECT, UPDATE(mem_id, price) ON auction_tb to ROLE_BUYER;
         GRANT SELECT, UPDATE ON member_tb to ROLE_BUYER;
         GRANT SELECT, USAGE ON SEQUENCE delivery_tb_id_seq to ROLE_BUYER;
         GRANT SELECT, USAGE ON SEQUENCE account_record_tb_id_seq to ROLE_BUYER;
@@ -243,6 +242,21 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION check_auction_validation()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Insert Data Don't have verifed and adjust
+    IF NEW.verified IS NOT NULL OR NEW.adjust IS NOT NULL THEN
+        RAISE EXCEPTION 'Insert Data Don`t have verifed and adjust';
+    END IF;
+
+    NEW.verified = 'N';
+    NEW.adjust = 'N';
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION check_auction_record_validation()
 RETURNS TRIGGER AS $$
@@ -331,3 +345,8 @@ CREATE TRIGGER check_auction_record_validation_trigger
 BEFORE INSERT ON auction_record_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_auction_record_validation();
+
+CREATE TRIGGER check_auction_validation_trigger
+BEFORE INSERT ON auction_tb
+FOR EACH ROW
+EXECUTE FUNCTION check_auction_validation();

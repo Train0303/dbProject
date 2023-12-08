@@ -1,10 +1,10 @@
 import psycopg2
 
-id = 'db2023' # todo: change to default id
+id = 'temp_account' # todo: change to default id
 conn = psycopg2.connect(
     dbname = "dbproject",
-    user = "db2023",
-    password = "db2023",
+    user = id,
+    password = "",
     host = "::1",
     port = 5432
 )
@@ -24,22 +24,23 @@ class Login:
 
         print("=====================================")
         print("로그인을 위해 아이디와 비밀번호를 입력해 주세요\n")
-        # id = input("ID: ")
-        # pw = input("PW: ")
+        id = input("ID: ")
+        pw = input("PW: ")
 
-        # if(conn != None):
-        #     close()
-        # conn = psycopg2.connect(
-        #     dbname = "dbproject",
-        #     user = id,
-        #     password = pw,
-        #     host = "::1",
-        #     port = 5432
-        # )
-        # cursor = conn.cursor()
-        # cursor.execute(f"select role from member_tb where id = '{id}'")
-        # r = cursor.fetchone()
-        r = ['role_deliver']
+        if(conn != None):
+            close()
+        conn = psycopg2.connect(
+            dbname = "dbproject",
+            user = id,
+            password = pw,
+            host = "::1",
+            port = 5432
+        )
+        cursor = conn.cursor()
+        cursor.execute(f"select role from member_tb where id = '{id}'")
+        r = cursor.fetchone()
+        cursor.execute("SET ROLE %s", (r[0], ))
+        # r = ['role_deliver']
         print("Login Success")
         print("=====================================")
         return  -1 if (r[0] == 'role_seller') else \
