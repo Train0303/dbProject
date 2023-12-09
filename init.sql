@@ -159,7 +159,7 @@ BEGIN
         GRANT INSERT ON delivery_tb to ROLE_BUYER; 
         GRANT INSERT ON account_record_tb to ROLE_BUYER;
         GRANT INSERT ON auction_record_tb to ROLE_BUYER;
-        GRANT SELECT, UPDATE(mem_id, price) ON auction_tb to ROLE_BUYER;
+        GRANT SELECT, UPDATE(buy_id, price) ON auction_tb to ROLE_BUYER;
         GRANT SELECT, UPDATE ON member_tb to ROLE_BUYER;
         GRANT SELECT, USAGE ON SEQUENCE delivery_tb_id_seq to ROLE_BUYER;
         GRANT SELECT, USAGE ON SEQUENCE account_record_tb_id_seq to ROLE_BUYER;
@@ -243,19 +243,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION check_auction_validation()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Insert Data Don't have verifed and adjust
-    IF NEW.verified IS NOT NULL OR NEW.adjust IS NOT NULL THEN
-        RAISE EXCEPTION 'Insert Data Don`t have verifed and adjust';
-    END IF;
+-- CREATE OR REPLACE FUNCTION check_auction_validation()
+-- RETURNS TRIGGER AS $$
+-- BEGIN
+--     -- Insert Data Don't have verifed and adjust
+--     IF NEW.verified IS NOT NULL OR NEW.adjust IS NOT NULL THEN
+--         RAISE EXCEPTION 'Insert Data Don`t have verifed and adjust';
+--     END IF;
 
-    NEW.verified = 'N';
-    NEW.adjust = 'N';
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+--     NEW.verified = 'N';
+--     NEW.adjust = 'N';
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION check_auction_record_validation()
@@ -346,7 +346,7 @@ BEFORE INSERT ON auction_record_tb
 FOR EACH ROW
 EXECUTE FUNCTION check_auction_record_validation();
 
-CREATE TRIGGER check_auction_validation_trigger
-BEFORE INSERT ON auction_tb
-FOR EACH ROW
-EXECUTE FUNCTION check_auction_validation();
+-- CREATE TRIGGER check_auction_validation_trigger
+-- BEFORE INSERT ON auction_tb
+-- FOR EACH ROW
+-- EXECUTE FUNCTION check_auction_validation();
