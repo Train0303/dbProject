@@ -18,13 +18,15 @@ class CustomService(Employee):
         while True:
             print("\n=======업무 선택=======")
             
-            choice:str = input('1. 경매 기록 조회\n2. 입출금 기록 조회\n0. 나가기\nEnter: ')
+            choice:str = input('1. 경매 기록 조회\n2. 입출금 기록 조회\n3. 배송 기록 조회\n0. 나가기\nEnter: ')
             if choice == '1':
                 # 경매 기록 조회 로직
                 self.process_auction_record()
             elif choice == '2':
                 # 입출금 기록 조회 로직
                 self.process_account_record()
+            elif choice == '3':
+                self.process_delivery_record()
             elif choice == '0':
                 break
             
@@ -70,6 +72,27 @@ class CustomService(Employee):
             
             result:List[dict] = self._find_account_record_by_date(date)
             print(*result, sep='\n')
+
+    def process_delivery_record(self) -> None:
+        print("\n=======배송 내역 조회 시스템=======")
+        choice:str = input('1. 전체 기록 조회\n2. 경매 정보로 조회\n3. 주문 상태로 조회\n0. 나가기\nEnter: ')
+        
+        if choice == '1':
+            result:List[dict] = self._find_all_delivery_record()
+            print(*result, sep = '\n')
+        elif choice == '2':
+            auc_id:str = input("\n경매 ID 입력: ")
+            result:List[dict] = self._find_delivery_record_by_auc(auc_id)  
+            print(*result, sep='\n')
+        elif choice == '3':
+            status:str = input('\n1. 배송 전\n2. 배송 중\n3. 배송 완료\nEnter: ')
+            result:List[dict] = self._find_delivery_record_by_status(status)
+            print(*result, sep='\n')
+        elif choice == '0':
+            return 
+        else:
+            print("올바른 입력이 아닙니다!")
+        
 
     def _find_all_auction_record(self) -> List[dict]:
         with self.conn.cursor() as cur:
@@ -168,3 +191,81 @@ class CustomService(Employee):
                     "money" : data[4],
                     "created_at" : data[5]
                 } for data in cur.fetchall()]
+            
+    def _find_all_delivery_record(self) -> List[dict] :
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT d.id, a.id, a.buy_id, a.sel_id, d.deli_id, p.name, l.name, d.address, d.status\
+                FROM delivery_tb as d \
+                JOIN location_tb as l ON d.loc_id = l.id \
+                JOIN auction_tb as a ON d.auc_id = a.id \
+                JOIN product_tb as p ON a.product_id = p.id")
+            
+            return [
+                {
+                    "delivery_id" : data[0],
+                    "auction_id" : data[1],
+                    "buyer" : data[2],
+                    "seller" : data[3],
+                    "deliver" : data[4],
+                    "product" : data[5],
+                    "loc_name" : data[6],
+                    "address" : data[7],
+                    "status" : data[8]
+                }
+                for data in cur.fetchall()]
+            
+    def _find_delivery_record_by_auc(self, auc_id:str) -> List[dict]:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT d.id, a.id, a.buy_id, a.sel_id, d.deli_id, p.name, l.name, d.address, d.status\
+                FROM delivery_tb as d \
+                JOIN location_tb as l ON d.loc_id = l.id \
+                JOIN auction_tb as a ON d.auc_id = a.id \
+                JOIN product_tb as p ON a.product_id = p.id \
+                WHERE d.auc_id = %s", (auc_id, ))
+            
+            return [
+                {
+                    "delivery_id" : data[0],
+                    "auction_id" : data[1],
+                    "buyer" : data[2],
+                    "seller" : data[3],
+                    "deliver" : data[4],
+                    "product" : data[5],
+                    "loc_name" : data[6],
+                    "address" : data[7],
+                    "status" : data[8]
+                }
+                for data in cur.fetchall()]
+    
+    def _find_delivery_record_by_status(self, status:str) -> List[dict]:
+        status_dict = {
+            '1' : "READY",
+            '2' : "IN_PROGRESS",
+            '3' : "DELIVERED"
+        }
+        if status_dict.get(status) is None:
+            print("잘못된 입력입니다.")
+            return
+        
+        with self.conn.cursor() as cur:
+            with self.conn.cursor() as cur:
+                cur.execute("SELECT d.id, a.id, a.buy_id, a.sel_id, d.deli_id, p.name, l.name, d.address, d.status\
+                    FROM delivery_tb as d \
+                    JOIN location_tb as l ON d.loc_id = l.id \
+                    JOIN auction_tb as a ON d.auc_id = a.id \
+                    JOIN product_tb as p ON a.product_id = p.id \
+                    WHERE d.status = %s", (status_dict[status], ))
+                
+                return [
+                {
+                    "delivery_id" : data[0],
+                    "auction_id" : data[1],
+                    "buyer" : data[2],
+                    "seller" : data[3],
+                    "deliver" : data[4],
+                    "product" : data[5],
+                    "loc_name" : data[6],
+                    "address" : data[7],
+                    "status" : data[8]
+                }
+                for data in cur.fetchall()]
