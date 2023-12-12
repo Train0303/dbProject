@@ -24,8 +24,8 @@ seller_menu = [
     ),
     qt.QueryInsert(
         "경매 등록을 위해 필요한 정보를 입력해 주세요", 
-        "insert into auction_tb (sel_id, product_id, price, count, adjust, start_time) values ('__id__', {0}, {1}, {2}, 'N', '{3}')", 
-        ["product_id", "price", "count", "start_time"],
+        "insert into auction_tb (sel_id, product_id, price, count, start_time, end_time) values ('__id__', {0}, {1}, {2}, '{3}', '{4}')", 
+        ["품목 번호", "개당 가격", "총 갯수", "start_time(yyyy-mm-dd)", "end_time(yyyy-mm-dd)"],
     ),
     qt.QueryResult(
         "경매 내역 보기",
@@ -38,7 +38,7 @@ seller_menu = [
     qt.QueryTransaction(
         "출금을 위해 필요한 정보를 입력해 주세요\n",
         [
-            "insert into account_record_tb (receiver, money) values ('__id__', {0});",
+            "insert into account_record_tb (sender, money) values ('__id__', {0});",
             "update member_tb set balance = balance - {0} where id = '__id__';"
         ],
         ['money'],
@@ -49,11 +49,11 @@ seller_menu = [
 buyer_menu = [
     qt.Menu(
         "메뉴를 입력해 주세요", 
-        ["경매 목록", "경매 입찰", "배송 요청", "잔액 조회", "입금", "로그아웃",]
+        ["경매 목록", "경매 입찰", "배송 가능 지역 조회" ,"배송 요청", "잔액 조회", "입금", "로그아웃",]
     ),
     qt.QueryResult(
         "진행중인 경매 목록입니다",
-        "select * from auction_tb where start_time <= now() and end_time > now()"
+        "select * from auction_tb where verified = 'Y' and start_time <= now() and end_time > now()"
     ),
     qt.QueryTransaction(
         "경매 입찰을 위해 필요한 정보를 입력해 주세요",
@@ -62,6 +62,10 @@ buyer_menu = [
             "update auction_tb set price = {1}, buy_id = '__id__' where id = {0};"
         ],
         ['auc_id', 'price'],
+    ),
+    qt.QueryResult(
+        "배송 가능 지역 조회",
+        "select * from location_tb"
     ),
     qt.QueryInsert(
         "배송 요청을 위해 필요한 정보를 입력해 주세요",
@@ -97,7 +101,7 @@ deliver_menu = [
     qt.QueryInsert(
         "배송 수락을 위해 필요한 정보를 입력해 주세요",
         "update delivery_tb set deli_id = '__id__', status = 'IN_PROGRESS' where id = {0}",
-        ['delivery id'],
+        ['수락할 배송요청 id'],
     ),
     qt.QueryInsert(
         "배달 상태 변경을 위해 필요한 정보를 입력해 주세요\nstatus : READY, IN_PROGRESS, DELIVERED",
@@ -105,26 +109,26 @@ deliver_menu = [
         ['delivery id', 'status'],
     ),
     qt.QueryResult(
-        "배달 내역",
+        "전체 배달 내역",
         "select * from delivery_tb where deli_id = '__id__'"
     ),
     qt.QueryResult(
-        "현재 등록되어 있는 지역들의 목록입니다",
+        "현재 시스템에 등록되어 있는 지역들의 목록입니다",
         "select * from location_tb"
     ),
     qt.QueryResult(
-        "유통 지역 목록",
-        "select name from location_tb join delivery_area_tb on loc_id = id where mem_id = '__id__'"
+        "나의 유통 지역",
+        "select id,name from location_tb join delivery_area_tb on loc_id = id where mem_id = '__id__'"
     ),
     qt.QueryInsert(
-        "유통 지역 추가",
+        "유통 지역 추가\n배송 가능한 지역을 추가해 주세요",
         "insert into delivery_area_tb (mem_id, loc_id) values ('__id__', {0})",
-        ['location id'],
+        ['배송 가능 지역 id'],
     ),
     qt.QueryInsert(
-        "유통 지역 삭제",
+        "유통 지역 삭제\n배송이 더이상 불가능한 지역을 삭제해 주세요",
         "delete from delivery_area_tb where mem_id = '__id__' and loc_id = {0}",
-        ['location id'],
+        ['삭제할 배송지역 id'],
     ),
     qt.Quit(),
 ]
