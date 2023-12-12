@@ -40,7 +40,7 @@ class CustomService(Employee):
             result:List[dict] = self._find_all_auction_record()
             print(*result, sep='\n')
         elif choice == '2':
-            print("\n=======회원 정보로 경매 기록 조회=======\n")
+            print("\n=======구매자 정보로 경매 기록 조회=======\n")
             member_id:str = input("회원정보 입력: ")
             result:List[dict] = self._find_auction_record_by_buy_id(member_id)
             print(*result, sep='\n')
@@ -72,6 +72,15 @@ class CustomService(Employee):
             
             result:List[dict] = self._find_account_record_by_date(date)
             print(*result, sep='\n')
+        elif choice == '3':
+            print('\n=======회원 정보로 기록 조회=======\n')
+            user_id:str = input('유저 정보를 입력: ')
+            result:List[dict] = self._find_account_record_by_user(user_id)
+            print(*result, sep='\n')
+        elif choice == '0':
+            return
+        else:
+            print("올바른 입력이 아닙니다.")
 
     def process_delivery_record(self) -> None:
         print("\n=======배송 내역 조회 시스템=======")
@@ -182,6 +191,23 @@ class CustomService(Employee):
                 LEFT JOIN member_tb s ON s.id = sender \
                 WHERE DATE(created_at) = %s \
                 ORDER BY created_at DESC;", (date, ))
+            return [
+                {
+                    "receiver_id" : data[0],
+                    "receiver_name" : data[1],
+                    "sender_id" : data[2],
+                    "sender_name" : data[3],
+                    "money" : data[4],
+                    "created_at" : data[5]
+                } for data in cur.fetchall()]
+            
+    def _find_account_record_by_user(self, user_id:str) -> List[dict]:
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT receiver, r.name, sender, s.name, money, created_at FROM account_record_tb \
+                LEFT JOIN member_tb r ON r.id = receiver \
+                LEFT JOIN member_tb s ON s.id = sender \
+                WHERE sender = %s OR receiver = %s \
+                ORDER BY created_at DESC;", (user_id, user_id, ))
             return [
                 {
                     "receiver_id" : data[0],
