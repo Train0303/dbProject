@@ -1,0 +1,22 @@
+C:\Users\busbt\AppData\Local\Programs\Python\Python310\Scripts
+
+services.msc
+D:\Program Files\PostgreSQL\data\pg_hba.conf
+
+\i SomeSQL.sql
+\l+
+\c DatabaseName
+\d = show table
+\du = show user
+
+select * from pg_roles;
+alter user USERNAME with CREATEDB, CREATEROLE, CREATEUSER
+ALTER USER librarian WITH SUPERUSER;
+drop user USERNAME;
+
+show client_encoding;
+언어 환경변수
+PGCLIENTENCODING
+UTF8
+
+update pg_database set encoding = pg_char_to_encoding('UTF8') where datname = 'thedb'
