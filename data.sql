@@ -4,17 +4,24 @@ INSERT INTO employee_tb (id, pw, name, role) values
 ('manager', 'qwer1234', 'manager', 'role_manager'),
 ('cs', 'qwer1234', 'customer service', 'role_cs');
 
+insert into employee_request_tb (id, name, pw, role) values
+('manager2', 'manager2', 'qwer1234', 'role_manager'),
+('cs2', 'customer service2', 'qwer1234', 'role_cs');
+
 -- member_tb
 insert into member_tb (id, name, pw, balance, role) values 
     ('seller' , 'qwer1234',   'seller',  13000, 'role_seller'),
     ('buyer'  , 'qwer1234',    'buyer',  40600,  'role_buyer'),
     ('deliver', 'qwer1234', ' deliver',  30000,'role_deliver'),
-    (   'buy2',     'buy2', 'qwer1234',    400,  'role_buyer'),
+    (   'buy2',     'buy2', 'qwer1234',   8000,  'role_buyer'),
     (   'buy3',     'buy3', 'qwer1234',    500,  'role_buyer'),
     (   'buy4',     'buy4', 'qwer1234',    600,  'role_buyer'),
     ('seller2', 'qwer1234',  'seller2',      0, 'role_seller'),
-    ('seller3', 'qwer1234',  'seller3',      0, 'role_seller'),
     ('deliver2','qwer1234', 'deliver2',      0,'role_deliver');
+
+insert into member_request_tb (id, pw, name, role) values
+    ('seller3', 'qwer1234',  'seller3', 'role_seller'),
+    ('deliver3','qwer1234', 'deliver3','role_deliver');
 
 
 -- location_tb
@@ -41,17 +48,17 @@ insert into product_tb (name, kind, description) values
 
 -- auction_tb
 INSERT INTO auction_tb(sel_id, buy_id, emp_id, product_id, price, verified, count, adjust ,start_time, end_time) VALUES
-('seller' ,   NULL,      NULL, 1, 10000, 'Y', 5, 'N', '2023-11-25', '2023-12-29'),
-('seller2',   NULL,      NULL, 2, 10000, 'Y', 2, 'N', '2023-11-29', '2023-12-30'),
-('seller3',   NULL,      NULL, 3, 20000, 'Y', 4, 'N', '2023-11-29', '2023-12-25'),
-('seller3', 'buy3', 'manager', 1, 20000, 'Y', 5, 'Y', '2023-11-25', '2023-12-09'),
+('seller' ,'buyer', 'manager', 1,  1000, 'Y', 5, 'N', '2023-11-25', '2023-11-29'),
+('seller2', 'buy2', 'manager', 2,  2000, 'Y', 2, 'N', '2023-11-29', '2023-11-30'),
+('seller2',   NULL,      NULL, 3, 20000, 'Y', 4, 'N', '2023-11-29', '2023-12-25'),
+('seller2', 'buy3', 'manager', 1, 20000, 'Y', 5, 'Y', '2023-11-25', '2023-12-09'),
 ('seller' ,   NULL,      NULL, 2, 10000, 'Y', 2, 'N', '2023-11-29', '2023-12-30'),
 ('seller' ,   NULL,      NULL, 3, 20000, 'N', 4, 'N', '2023-11-29', '2023-12-25');
 
 -- auction_record_tb
 INSERT INTO auction_record_tb(buy_id, auc_id, price, order_time) VALUES
-('buy2', 1, 15000, NULL),
-('buy3', 1, 20000, NULL);
+('buy2', 1, 15000, '2023-11-28'),
+('buy3', 1, 20000, '2023-11-29');
 
 -- account_record_tb
 INSERT INTO account_record_tb(receiver, sender, money) VALUES
@@ -85,9 +92,3 @@ GRANT role_seller TO seller3;
 
 CREATE USER deliver2 PASSWORD 'qwer1234';
 GRANT role_deliver TO deliver2;
-
-
-
-
-
-

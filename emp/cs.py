@@ -54,7 +54,7 @@ class CustomService(Employee):
 
     def process_account_record(self) -> None:
         print("\n=======입출금 기록 조회 시스템=======")
-        choice:str = input('1. 전체 기록 조회\n2. 날짜 정보로 조회\n0. 나가기\nEnter: ')
+        choice:str = input('1. 전체 기록 조회\n2. 날짜 정보로 조회\n3. 회원 정보로 조회\n0. 나가기\nEnter: ')
         
         if choice == '1':
             print('\n=======전체 입출금 기록 조회=======\n')

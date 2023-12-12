@@ -1,6 +1,6 @@
 import psycopg2
 
-id = 'db2023' # todo: change to default id
+id = 'temp_account'
 conn = psycopg2.connect(
     dbname = "dbproject",
     user = id,

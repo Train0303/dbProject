@@ -100,6 +100,9 @@ class Manager(Employee):
                     cur.execute("UPDATE auction_tb SET adjust = 'Y' WHERE id = %s;", (adjust_data['id'], ))
                     self.conn.commit()
                     cur.execute("SAVEPOINT adjust_save_point;")
+                    print(f"'{adjust_data['buy_id']}'고객에게 {total_price}원 출금")
+                    print(f"'{adjust_data['sel_id']}'고객에게 {total_price}원 입금")
+                    print(f"계좌 내역 추가 완료")
                 except Exception as e:
                     print(e)
                     cur.execute("ROLLBACK TO SAVEPOINT adjust_save_point;")
